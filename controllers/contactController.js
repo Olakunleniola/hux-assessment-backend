@@ -30,42 +30,50 @@ exports.getContacts = async (req, res) => {
 
 // ** Get Single Contact **
 exports.getContact = async (req, res) => {
-  try {
-    const contact = await Contact.findById(req.params.id); // Find contact by ID from request params
-    if (!contact) return res.status(404).json({ msg: 'Contact not found' }); // Handle non-existent contact
-    res.json(contact); // Send the found contact back in the response
-  } catch (err) {
-    res.status(500).json({ error: err.message }); // Handle errors and send error message
-  }
+    try {
+      // Find the contact by ID and ensure it belongs to the logged-in user
+      const contact = await Contact.findOne({ _id: req.params.id, user: req.user.id });
+      if (!contact) return res.status(404).json({ msg: 'Contact not found or you do not have permission to view it' });
+  
+      res.json(contact); // Send the found contact back in the response
+    } catch (err) {
+      res.status(500).json({ error: err.message }); // Handle errors and send error message
+    }
 };
-
-// ** Update Contact **
+  
+  // ** Update Contact **
 exports.updateContact = async (req, res) => {
-  const { firstName, lastName, phoneNumber } = req.body; // Destructure request body for updated contact details
-
-  try {
-    let contact = await Contact.findById(req.params.id); // Find contact by ID from request params
-    if (!contact) return res.status(404).json({ msg: 'Contact not found' }); // Handle non-existent contact
-
-    contact.firstName = firstName; // Update contact properties
-    contact.lastName = lastName;
-    contact.phoneNumber = phoneNumber;
-    await contact.save(); // Save the updated contact to the database
-    res.json(contact); // Send the updated contact back in the response
-  } catch (err) {
-    res.status(500).json({ error: err.message }); // Handle errors and send error message
-  }
+    const { firstName, lastName, phoneNumber } = req.body;
+  
+    try {
+      // Find the contact by ID and ensure it belongs to the logged-in user
+      let contact = await Contact.findOne({ _id: req.params.id, user: req.user.id });
+      if (!contact) return res.status(404).json({ msg: 'Contact not found or you do not have permission to update it' });
+  
+      // Update contact properties
+      contact.firstName = firstName;
+      contact.lastName = lastName;
+      contact.phoneNumber = phoneNumber;
+      await contact.save(); // Save the updated contact to the database
+  
+      res.json(contact); // Send the updated contact back in the response
+    } catch (err) {
+      res.status(500).json({ error: err.message }); // Handle errors and send error message
+    }
 };
-
-// ** Delete Contact **
+  
+  // ** Delete Contact **
 exports.deleteContact = async (req, res) => {
-  try {
-    const contact = await Contact.findById(req.params.id); // Find contact by ID from request params
-    if (!contact) return res.status(404).json({ msg: 'Contact not found' }); // Handle non-existent contact
-
-    await contact.remove(); // Remove the contact from the database
-    res.json({ msg: 'Contact removed' }); // Send success message on deletion
-  } catch (err) {
-    res.status(500).json({ error: err.message }); // Handle errors and send error message
-  }
+    try {
+      // Find the contact by ID and ensure it belongs to the logged-in user
+      const contact = await Contact.findOne({ _id: req.params.id, user: req.user.id });
+      if (!contact) return res.status(404).json({ msg: 'Contact not found or you do not have permission to delete it' });
+  
+      await contact.remove(); // Remove the contact from the database
+  
+      res.json({ msg: 'Contact removed' }); // Send success message on deletion
+    } catch (err) {
+      res.status(500).json({ error: err.message }); // Handle errors and send error message
+    }
 };
+  
