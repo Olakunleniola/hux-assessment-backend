@@ -34,7 +34,7 @@ exports.register = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Return the token to the client
-    res.json({ token });
+    res.status(201).json({ token });
   } catch (err) {
     // Return a server error if an exception occurs
     res.status(500).json({ error: err.message });
@@ -63,7 +63,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Return the token to the client
-    res.json({ token: token,  username: user._username, id: user._id });
+    res.json({ token, user:{username:user.username, id: user._id} });
   } catch (err) {
     // Return a server error if an exception occurs
     res.status(500).json({ error: err.message });

@@ -6,14 +6,15 @@ exports.createContact = async (req, res) => {
 
   try {
     const contact = new Contact({ // Create a new Contact object
-      user: req.user.id, // Set the user ID from the request
+      user: req.user.userId, // Set the user ID from the request
       firstName,
       lastName,
       phoneNumber,
     });
     await contact.save(); // Save the new contact to the database
-    res.json(contact); // Send the created contact back in the response
+    res.status(201).json(contact); // Send the created contact back in the response
   } catch (err) {
+    console.error('Error creating contact:', err.message);
     res.status(500).json({ error: err.message }); // Handle errors and send error message
   }
 };
@@ -21,7 +22,7 @@ exports.createContact = async (req, res) => {
 // ** Get All Contacts **
 exports.getContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find({ user: req.user.id }); // Find all contacts for the current user
+    const contacts = await Contact.find({ user: req.user.userId }); // Find all contacts for the current user
     res.json(contacts); // Send the list of contacts back in the response
   } catch (err) {
     res.status(500).json({ error: err.message }); // Handle errors and send error message
@@ -32,7 +33,7 @@ exports.getContacts = async (req, res) => {
 exports.getContact = async (req, res) => {
     try {
       // Find the contact by ID and ensure it belongs to the logged-in user
-      const contact = await Contact.findOne({ _id: req.params.id, user: req.user.id });
+      const contact = await Contact.findOne({ _id: req.params.id, user: req.user.userId });
       if (!contact) return res.status(404).json({ msg: 'Contact not found or you do not have permission to view it' });
   
       res.json(contact); // Send the found contact back in the response
@@ -47,7 +48,7 @@ exports.updateContact = async (req, res) => {
   
     try {
       // Find the contact by ID and ensure it belongs to the logged-in user
-      let contact = await Contact.findOne({ _id: req.params.id, user: req.user.id });
+      let contact = await Contact.findOne({ _id: req.params.id, user: req.user.userId });
       if (!contact) return res.status(404).json({ msg: 'Contact not found or you do not have permission to update it' });
   
       // Update contact properties
@@ -66,13 +67,14 @@ exports.updateContact = async (req, res) => {
 exports.deleteContact = async (req, res) => {
     try {
       // Find the contact by ID and ensure it belongs to the logged-in user
-      const contact = await Contact.findOne({ _id: req.params.id, user: req.user.id });
+      const contact = await Contact.findOne({ _id: req.params.id, user: req.user.userId });
       if (!contact) return res.status(404).json({ msg: 'Contact not found or you do not have permission to delete it' });
   
-      await contact.remove(); // Remove the contact from the database
+      await contact.deleteOne(); // Remove the contact from the database
   
       res.json({ msg: 'Contact removed' }); // Send success message on deletion
     } catch (err) {
+      console.error(err.message)
       res.status(500).json({ error: err.message }); // Handle errors and send error message
     }
 };
